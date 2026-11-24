@@ -4,7 +4,7 @@ import kotlin.math.*
 
 /** Twist relative to the captured device frame. Quaternion order is w,x,y,z. */
 class RelativeAngleTracker(private val axis: Int) {
-    init { require(axis in 1..2) }
+    init { require(axis in 1..3) }
     private var center: DoubleArray? = null
     fun recenter() { center = null }
     fun sample(w: Double, x: Double, y: Double, z: Double): Double? {
@@ -17,8 +17,11 @@ class RelativeAngleTracker(private val axis: Int) {
         val c=center!!
         // inverse(center) * current; project onto the selected local axis.
         val rw=c[0]*q[0]+c[1]*q[1]+c[2]*q[2]+c[3]*q[3]
-        val component=if(axis==1) c[0]*q[1]-c[1]*q[0]-c[2]*q[3]+c[3]*q[2]
-                      else c[0]*q[2]+c[1]*q[3]-c[2]*q[0]-c[3]*q[1]
+        val component=when(axis) {
+            1 -> c[0]*q[1]-c[1]*q[0]-c[2]*q[3]+c[3]*q[2]
+            2 -> c[0]*q[2]+c[1]*q[3]-c[2]*q[0]-c[3]*q[1]
+            else -> c[0]*q[3]-c[1]*q[2]+c[2]*q[1]-c[3]*q[0]
+        }
         if(hypot(rw,component)<1e-8) return null
         return wrapDegrees(Math.toDegrees(2*atan2(component,rw)))
     }

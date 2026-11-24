@@ -7,7 +7,7 @@ import org.junit.Test
 class AngleSweepTest {
     private fun q(degrees: Double, axis: Int=2): DoubleArray {val half=Math.toRadians(degrees)/2;return DoubleArray(4){if(it==0)cos(half) else if(it==axis)sin(half) else 0.0} }
     @Test fun capturesStartingOrientationAndSupportsBothAxes() {
-        for(axis in 1..2){val tracker=RelativeAngleTracker(axis)
+        for(axis in 1..3){val tracker=RelativeAngleTracker(axis)
             val center=q(45.0,axis);assertEquals(0.0,tracker.sample(center[0],center[1],center[2],center[3])!!,1e-8)
             val rotated=q(75.0,axis);assertEquals(30.0,tracker.sample(rotated[0],rotated[1],rotated[2],rotated[3])!!,1e-8)
         }
@@ -29,7 +29,7 @@ class AngleSweepTest {
         assertEquals(30.0,tracker.sample(c*cos(h),-c*sin(h),c*sin(h),c*cos(h))!!,1e-8)
     }
     @Test fun bothAxesRecenterAndQuaternionSignAreStable() {
-        for(axis in 1..2){
+        for(axis in 1..3){
             val tracker=RelativeAngleTracker(axis)
             fun sample(d:Double,sign:Double=1.0):Double? {val v=q(d,axis);return tracker.sample(v[0]*sign,v[1]*sign,v[2]*sign,v[3]*sign)}
             assertNull(tracker.sample(0.0,0.0,0.0,0.0))
@@ -39,6 +39,16 @@ class AngleSweepTest {
             tracker.recenter()
             assertEquals(0.0,sample(-170.0)!!,1e-6)
             assertEquals(-20.0,sample(170.0)!!,1e-6)
+        }
+    }
+    @Test fun horizontalRollRespondsToScreenNormalAndIgnoresYaw() {
+        val roll=RelativeAngleTracker(3)
+        assertEquals(0.0,roll.sample(1.0,0.0,0.0,0.0)!!,1e-6)
+        val yaw=q(45.0,2)
+        assertEquals(0.0,roll.sample(yaw[0],yaw[1],yaw[2],yaw[3])!!,1e-6)
+        for(degrees in listOf(-60.0,-30.0,0.0,30.0,60.0,30.0,0.0,-30.0,-60.0)) {
+            val v=q(degrees,3)
+            assertEquals(degrees,roll.sample(v[0],v[1],v[2],v[3])!!,1e-6)
         }
     }
     @Test fun sameAngleGivesSameColumnOnForwardAndReturnPasses() {

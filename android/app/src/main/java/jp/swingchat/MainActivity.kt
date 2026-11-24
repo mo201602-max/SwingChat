@@ -53,7 +53,7 @@ class MainActivity : Activity() {
         mode=Spinner(this).apply { adapter=ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,listOf("角度に同期（往復）","一定テンポ（片方向・従来方式）"));setSelection(prefs.getInt("mode",0));root.addView(this) }
         angleSpan=slider("表示する角度の幅",30,160,prefs.getInt("angleSpan",120),"°")
         root.addView(label("角度を測る軸"))
-        axis=Spinner(this).apply { adapter=ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,listOf("左右に振る（スマホの縦軸）","前後に振る（スマホの横軸）"));setSelection(prefs.getInt("axis",0));root.addView(this) }
+        axis=Spinner(this).apply { adapter=ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,listOf("左右に倒す（画面に垂直な軸・ロール）","前後に倒す（スマホの横軸）"));setSelection(prefs.getInt("axis",0));root.addView(this) }
         tempo=slider("テンポ",40,160,prefs.getInt("bpm",80)," BPM")
         sweep=slider("1拍のうち表示する時間",35,80,prefs.getInt("sweep",65),"%")
         brightness=slider("画面の明るさ",20,100,prefs.getInt("brightness",80),"%")
@@ -65,7 +65,7 @@ class MainActivity : Activity() {
         val startButton=Button(this).apply { setOnClickListener { startLight() } };root.addView(startButton)
         fun refreshMode(){ val angleMode=mode.selectedItemPosition==0;angleSpan.isEnabled=angleMode;axis.isEnabled=angleMode;tempo.isEnabled=!angleMode;sweep.isEnabled=!angleMode;startButton.text=if(angleMode) "中央を向けて開始 ↗" else "4拍カウントして開始 ↗";updateEstimate() }
         mode.onItemSelectedListener=object:AdapterView.OnItemSelectedListener { override fun onItemSelected(p:AdapterView<*>?,v:View?,position:Int,id:Long){refreshMode()};override fun onNothingSelected(p:AdapterView<*>?){} };refreshMode()
-        root.addView(label("角度モード：スマホを縦に持ち、振る範囲の中央を向けて開始します。初期値は左右60°ずつ、合計120°。往路と復路の同じ角度に同じ列を表示します。表示範囲の外や静止中は消灯します。\n\n中央がずれたら画面の「ここを中央に」で設定し直せます。文字列の先頭の角度では別色マークが点灯します。左右が逆なら反転を使ってください。\n\n肘や肩を中心に、スマホが弧を描いて移動し、向きも変わるように振ってください。その場で回すだけ・向きを固定して平行移動するだけではうまく描けません。\n\nストラップを使い、周囲に十分な空間を確保してください。強い点滅が苦手な方は使用を控えてください。\n\n高リフレッシュレートを優先しますが、実際の速度は端末設定・省電力・温度などに依存します。"))
+        root.addView(label("角度モード：スマホを縦に持ち、振る範囲の中央を向けて開始します。初期値は左右60°ずつ、合計120°。往路と復路の同じ角度に同じ列を表示します。表示範囲の外や静止中は消灯します。\n\n中央がずれたら画面の「ここを中央に」で設定し直せます。文字列の先頭の角度では別色マークが点灯します。左右が逆なら反転を使ってください。\n\n画面を正面に向けたまま、ペンライトのようにスマホの上端を左右へ倒してください。肘や肩を中心に弧を描いて振ります。その場で回すだけ・向きを固定して平行移動するだけではうまく描けません。\n\nストラップを使い、周囲に十分な空間を確保してください。強い点滅が苦手な方は使用を控えてください。\n\n高リフレッシュレートを優先しますが、実際の速度は端末設定・省電力・温度などに依存します。"))
         setContentView(scroll)
     }
     @Suppress("DEPRECATION") private fun currentDisplay() = windowManager.defaultDisplay
@@ -96,7 +96,7 @@ class MainActivity : Activity() {
         attrs.preferredDisplayModeId=best?.modeId?:current.modeId;attrs.preferredRefreshRate=best?.refreshRate?:display.refreshRate;attrs.screenBrightness=brightness.progress/100f;window.attributes=attrs
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val stage=FrameLayout(this).apply { setBackgroundColor(Color.BLACK) }
-        light=LightView(this,text,timeline,colors[palette.selectedItemPosition],reverse.isChecked,if(angleMode)angleSpan.progress else null,if(axis.selectedItemPosition==0)2 else 1)
+        light=LightView(this,text,timeline,colors[palette.selectedItemPosition],reverse.isChecked,if(angleMode)angleSpan.progress else null,if(axis.selectedItemPosition==0)3 else 1)
         stage.addView(light,FrameLayout.LayoutParams(-1,-1))
         val exit=Button(this).apply { this.text="終了 ×";alpha=.65f;setOnClickListener { stopLight() } }
         stage.addView(exit,FrameLayout.LayoutParams(dp(100),dp(54),Gravity.BOTTOM or Gravity.END).apply {setMargins(dp(16),0,dp(16),dp(28))})
